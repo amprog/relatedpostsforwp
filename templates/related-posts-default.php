@@ -55,4 +55,6 @@
 		$manager_template->get_template( 'show-love.php', array( 'link' => $url ) );
 	}
 	?>
+
+	pooop
 </div>
