@@ -1,1 +1,0 @@
-<small><a href="<?php echo $link; ?>" target="_blank">Powered By Related Posts for WordPress</a></small>

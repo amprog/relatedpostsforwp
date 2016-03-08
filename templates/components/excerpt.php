@@ -1,2 +1,0 @@
-<?php $excerpt = wp_trim_words( strip_tags( strip_shortcodes( ( ( '' != $related_post->post_excerpt ) ? $related_post->post_excerpt : $related_post->post_content ) ) ), $excerpt_length ); ?>
-<p><?php echo apply_filters( 'rp4wp_post_excerpt', $excerpt, $related_post->ID ); ?></p>

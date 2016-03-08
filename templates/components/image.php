@@ -1,1 +1,0 @@
-<a href="<?php echo get_permalink( $related_post->ID ); ?>"><?php rp4wp_thumbnail( $related_post->ID, $parent->post_type ); ?></a>

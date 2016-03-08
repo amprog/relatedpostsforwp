@@ -1,1 +1,0 @@
-<span><?php echo $custom; ?></span>
