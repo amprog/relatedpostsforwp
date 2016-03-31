@@ -1,0 +1,1 @@
+<a href="<?php echo get_permalink( $related_post->ID ); ?>"><?php echo apply_filters( 'rp4wp_post_title', $related_post->post_title, $related_post ); ?></a>

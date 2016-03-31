@@ -1,0 +1,1 @@
+<span><?php echo get_post_meta( $related_post->ID, $custom, true ); ?></span>

@@ -1,0 +1,256 @@
+@import "mixins";
+@import "fonts";
+@import "tipped";
+
+.install-steps {
+  li {
+    width: 25%;
+    padding: 10px 15px;
+    font-weight: bold;
+    color: #eee;
+    background: #222222;
+    float: left;
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+
+    &.step-bar-active {
+      background: #0074a2;
+    }
+
+    &:first-child {
+      margin-left: 0;
+    }
+  }
+}
+
+.rp4wp-step {
+
+  #progress-container {
+    display: none;
+    margin: 20px 0 0;
+    p {
+      font-weight: bold;
+    }
+    #progressbar {
+      span {
+        line-height: 28px;
+        display: block;
+        text-align: right;
+        padding-right: 10px;
+        color: #3B3B3B;
+      }
+    }
+  }
+
+  .rp4wp-install-link-box {
+    padding: 15px;
+    border: 1px solid #0074a2;
+    float: left;
+
+    label {
+      display: block;
+      width: 100%;
+    }
+
+    table {
+      tr {
+        td {
+          padding: 0 10px 10px 0;
+
+          input {
+            width: 40px;
+            text-align: center;
+          }
+        }
+        td.rp4pw-install-step3-table-desc {
+          font-size: 11px;
+        }
+        td.rp4pw-install-step3-table-buttons {
+          padding-top: 15px;
+          text-align: left;
+        }
+      }
+
+    }
+  }
+
+  .rp4wp-table-pt-overview {
+    width: 100%;
+
+    tr.inactive {
+      td {
+        background: #e1e1e1;
+      }
+    }
+
+    th {
+      text-align: left;
+    }
+
+    td {
+      padding: 15px 0;
+      border-bottom: 1px solid #3B3B3B;
+    }
+
+    tr:first-child {
+      td {
+        border-top: 1px solid #3B3B3B;
+      }
+    }
+
+    tr {
+      th:first-child, td:first-child {
+        padding-left: 10px;
+      }
+    }
+
+    td.rp4wp-parent {
+      width: 20%;
+    }
+
+    td.rp4wp-children {
+      ul {
+        margin: 0;
+        padding: 0;
+
+        li {
+          display: inline;
+
+          position: relative;
+          margin: 3px 5px 3px 0;
+          padding: 3px 10px 3px 10px;
+          border: 1px solid #aaa;
+          border-radius: 3px;
+          background-color: #e4e4e4;
+          background-image: -webkit-gradient(linear, 50% 0, 50% 100%, color-stop(20%, #f4f4f4), color-stop(50%, #f0f0f0), color-stop(52%, #e8e8e8), color-stop(100%, #eee));
+          background-image: -webkit-linear-gradient(#f4f4f4 20%, #f0f0f0 50%, #e8e8e8 52%, #eee 100%);
+          background-image: -moz-linear-gradient(#f4f4f4 20%, #f0f0f0 50%, #e8e8e8 52%, #eee 100%);
+          background-image: -o-linear-gradient(#f4f4f4 20%, #f0f0f0 50%, #e8e8e8 52%, #eee 100%);
+          background-image: linear-gradient(#f4f4f4 20%, #f0f0f0 50%, #e8e8e8 52%, #eee 100%);
+          background-clip: padding-box;
+          box-shadow: 0 0 2px #fff inset, 0 1px 0 rgba(0, 0, 0, 0.05);
+          color: #333;
+          line-height: 13px;
+          cursor: default;
+
+          span {
+            color: #333;
+          }
+
+        }
+
+        li.edit {
+          padding: 3px 25px 3px 10px;
+          .remove-btn {
+            position: absolute;
+            top: 7px;
+            right: 4px;
+            display: block;
+            width: 12px;
+            height: 12px;
+            background: url(../images/remove-sprite.png) 0 1px no-repeat;
+            font-size: 1px;
+            cursor: pointer;
+            &:hover {
+              background-position: 0 -10px;
+            }
+          }
+        }
+
+        li.add-pt {
+          background: #2ea2cc;
+          border-color: #0074a2;
+          -webkit-box-shadow: inset 0 1px 0 rgba(120, 200, 230, 0.5), 0 1px 0 rgba(0, 0, 0, 0.15);
+          box-shadow: inset 0 1px 0 rgba(120, 200, 230, 0.5), 0 1px 0 rgba(0, 0, 0, 0.15);
+          color: #fff;
+          text-decoration: none;
+          cursor: pointer;
+          span {
+            color: #fff;
+          }
+        }
+
+        li.new-pt {
+          padding: 2px 0;
+
+          select {
+            padding: 0 20px 0 0;
+            height: auto;
+            line-height: 0;
+            vertical-align: inherit;
+            border: 0;
+          }
+
+          .add-pt-plus {
+            padding: 3px 10px;
+            background: #2ea2cc;
+            border-color: #0074a2;
+            -webkit-box-shadow: inset 0 1px 0 rgba(120, 200, 230, 0.5), 0 1px 0 rgba(0, 0, 0, 0.15);
+            box-shadow: inset 0 1px 0 rgba(120, 200, 230, 0.5), 0 1px 0 rgba(0, 0, 0, 0.15);
+            color: #fff;
+            text-decoration: none;
+            cursor: pointer;
+          }
+        }
+
+      }
+    }
+
+    td.rp4wp-button {
+      width: 15%;
+      text-align: center;
+
+      .button {
+        position: relative;
+        padding: 12px 17px;
+        margin: 0 5px;
+      }
+
+      .rp4wp-btn-edit {
+        &:before {
+          @include icon("\e801");
+        }
+      }
+
+      .rp4wp-btn-delete {
+        &:before {
+          @include icon("\e800");
+        }
+      }
+
+      .rp4wp-btn-relink {
+        &:before {
+          @include icon("\e803");
+        }
+      }
+
+      .rp4wp-btn-reinstall {
+        &:before {
+          @include icon("\e802");
+        }
+      }
+
+      .rp4wp-btn-save {
+        &:before {
+          @include icon("\e804");
+        }
+      }
+
+      .button {
+        &:before {
+          color: white;
+          font-size: 16px;
+          line-height: inherit;
+        }
+      }
+
+    }
+
+  }
+
+}
+
+.rp4wp-step-2 #progressbar {
+  margin-top: 30px;
+}
