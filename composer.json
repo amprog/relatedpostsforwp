@@ -1,6 +1,7 @@
 {
   "name": "barrykooij/related-posts-for-wp-premium",
   "description": "Related Posts plugin for WordPress",
+  "type": "wordpress-plugin",
   "keywords": [
     "wordpress",
     "related posts"
