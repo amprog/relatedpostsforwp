@@ -253,6 +253,20 @@ class RP4WP_Upgrade_Manager {
 			}
 		}
 
+		// upgrade to 1.5.7
+		if ( version_compare( $current_version, '1.5.7', '<' ) ) {
+
+			// remove post cache meta data since we're no longer using this
+			$wpdb->query( "DELETE FROM $wpdb->postmeta WHERE `meta_key` = 'rp4wp_cached' ;" );
+		}
+
+		// upgrade to 1.7.2
+		if ( version_compare( $current_version, '1.7.2', '<' ) ) {
+
+			// clear default CSS transient. Will be re-generated on first get() request.
+			delete_transient( RP4WP_Constants::TRANSIENT_COMPONENT_CSS );
+		}
+
 	}
 
 	/**

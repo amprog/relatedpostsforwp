@@ -118,7 +118,7 @@ class RP4WP_Related_Word_Manager {
 		$linked_words = array();
 
 		// Find all links in the content
-		if ( true == preg_match_all( '`<a[^>]*href="([^"]+)">[^<]*</a>`si', $content, $matches ) ) {
+		if ( true == preg_match_all( '`<a[^>]*href="([^"]+)">[^<]*</a>`iS', $content, $matches ) ) {
 			if ( count( $matches[1] ) > 0 ) {
 
 				// Get link weight
@@ -140,8 +140,12 @@ class RP4WP_Related_Word_Manager {
 
 					// Check if we found a linked post
 					if ( $link_post != null ) {
+
+						// convert characters in title
+						$post_title = $this->convert_characters( $link_post->post_title );
+
 						// Get words of title
-						$title_words = $this->explode( $link_post->post_title );
+						$title_words = $this->explode( $post_title );
 
 						// Check, Loop
 						if ( is_array( $title_words ) && count( $title_words ) > 0 ) {
@@ -182,6 +186,8 @@ class RP4WP_Related_Word_Manager {
 	/**
 	 * Add words from an array to the "base" words array, multiplied by their weight
 	 *
+	 * Note: Make sure `$words` is UTF-8 encoded at this point.
+	 *
 	 * @param array $base_words
 	 * @param array $words
 	 * @param int $weight
@@ -193,7 +199,6 @@ class RP4WP_Related_Word_Manager {
 		// Check if weight > 0 and if $words is array
 		if ( $weight > 0 && is_array( $words ) ) {
 			foreach ( $words as $word ) {
-				$word                      = $this->convert_characters( $word );
 				$word_multiplied_by_weight = array_fill( 0, $weight, $word );
 				$base_words                = array_merge( $base_words, $word_multiplied_by_weight );
 			}
@@ -217,7 +222,7 @@ class RP4WP_Related_Word_Manager {
 
 		// Replace all 'special characters' with normal ones
 		if ( strpos( $string = htmlentities( $string, ENT_QUOTES, 'UTF-8' ), '&' ) !== false ) {
-			$string = html_entity_decode( preg_replace( '~&([a-z]{1,2})(?:acute|cedil|circ|grave|lig|orn|ring|slash|tilde|uml);~i', '$1', $string ), ENT_QUOTES, 'UTF-8' );
+			$string = html_entity_decode( preg_replace( '~&([a-z]{1,2})(?:acute|cedil|circ|grave|lig|orn|ring|slash|tilde|uml);~iS', '$1', $string ), ENT_QUOTES, 'UTF-8' );
 		}
 
 		// Return string
@@ -351,13 +356,15 @@ class RP4WP_Related_Word_Manager {
 		$raw_words = $this->get_content_words( $post );
 
 		// Get words from title
-		$title_words = $this->explode( $post->post_title );
+		$post_title  = $this->convert_characters( $post->post_title );
+		$title_words = $this->explode( $post_title );
 		$raw_words   = $this->add_words_from_array( $raw_words, $title_words, $title_weight );
 
 		// Get tags and add them to list
 		$tags = wp_get_post_tags( $post->ID, array( 'fields' => 'names' ) );
 		if ( is_array( $tags ) && count( $tags ) > 0 ) {
 			foreach ( $tags as $tag ) {
+				$tag       = $this->convert_characters( $tag );
 				$tag_words = $this->explode( $tag );
 				$raw_words = $this->add_words_from_array( $raw_words, $tag_words, $tag_weight );
 			}
@@ -367,6 +374,7 @@ class RP4WP_Related_Word_Manager {
 		$categories = wp_get_post_categories( $post->ID, array( 'fields' => 'names' ) );
 		if ( is_array( $categories ) && count( $categories ) > 0 ) {
 			foreach ( $categories as $category ) {
+				$category  = $this->convert_characters( $category );
 				$cat_words = $this->explode( $category );
 				$raw_words = $this->add_words_from_array( $raw_words, $cat_words, $cat_weight );
 			}
@@ -375,13 +383,27 @@ class RP4WP_Related_Word_Manager {
 		// Loop through all taxonomies
 		$custom_taxonomies = get_taxonomies( array( '_builtin' => false ) );
 		if ( count( $custom_taxonomies ) > 0 ) {
+
+			// get terms
 			$terms = wp_get_object_terms( $post->ID, array_values( $custom_taxonomies ) );
+
+			// check terms
 			if ( count( $terms ) > 0 ) {
+
+				// loop
 				foreach ( $terms as $term ) {
-					$term_words = $this->explode( $term->name );
-					$raw_words  = $this->add_words_from_array( $raw_words, $term_words, $custom_tax_weight );
+					$term_name  = $this->convert_characters( $term->name );
+					$term_words = $this->explode( $term_name );
+
+					// allow filtering
+					$term_custom_tax_weight = apply_filters( 'rp4wp_custom_tax_weight', $custom_tax_weight, $term->taxonomy, $term );
+
+					// raw words
+					$raw_words  = $this->add_words_from_array( $raw_words, $term_words, $term_custom_tax_weight );
 				}
+
 			}
+
 		}
 
 		// Loop through meta
@@ -403,8 +425,9 @@ class RP4WP_Related_Word_Manager {
 
 					// Only proceed it string isn't empty
 					if ( '' != $meta_value_string ) {
-						$meta_value_words = $this->explode( $meta_value_string );
-						$raw_words        = $this->add_words_from_array( $raw_words, $meta_value_words, apply_filters( 'rp4wp_related_meta_fields_weight', 20, $post, $meta_field ) );
+						$meta_value_string = $this->convert_characters( $meta_value_string );
+						$meta_value_words  = $this->explode( $meta_value_string );
+						$raw_words         = $this->add_words_from_array( $raw_words, $meta_value_words, apply_filters( 'rp4wp_related_meta_fields_weight', 20, $post, $meta_field ) );
 					}
 				}
 
@@ -473,7 +496,8 @@ class RP4WP_Related_Word_Manager {
 	/**
 	 * Save words of given post
 	 *
-	 * @param $post_id
+	 * @param int $post_id
+	 * @param string $post_type
 	 */
 	public function save_words_of_post( $post_id, $post_type ) {
 		global $wpdb;
@@ -487,60 +511,71 @@ class RP4WP_Related_Word_Manager {
 			// Delete all currents words of post
 			$this->delete_words_by_post_id( $post_id );
 
-			// Loop words
-			// @todo Add w/ batch in the future
+			// build SQL string for batch INSERT
+			$sql = 'INSERT INTO ' . self::get_database_table() . ' (post_id, word, weight, post_type )';
+			$sql .= ' VALUES';
+			$params = array();
+
+			// add params for each VALUES pair
 			foreach ( $words as $word => $amount ) {
-
-				// Insert word row
-				$wpdb->insert(
-					self::get_database_table(),
-					array(
-						'post_id'   => $post_id,
-						'word'      => $word,
-						'weight'    => $amount,
-						'post_type' => $post_type,
-					),
-					array(
-						'%d',
-						'%s',
-						'%f',
-						'%s',
-					)
-				);
-
+				$params[] = $post_id;
+				$params[] = $word;
+				$params[] = $amount;
+				$params[] = $post_type;
 			}
 
+			// add VALUES pairs
+			$sql .= ' ' . str_repeat( '( %d, %s, %f, %s ),', count( $words ) );
+			$sql = rtrim( $sql, ',' );
+
+			// prep & execute!
+			$query = $wpdb->prepare( $sql, $params );
+			$wpdb->query( $query );
+		}
+	}
+
+	/**
+	 * Get SQL for retrieving uncached posts
+	 *
+	 * Used by get_uncached_post_ids() and get_uncached_post_count()
+	 *
+	 * @param string $post_type
+	 * @param int $limit
+	 *
+	 * @return string
+	 */
+	private function get_uncached_post_sql( $post_type, $limit = - 1 ) {
+		global $wpdb;
+		$words_table = self::get_database_table();
+
+		$sql = "SELECT p.ID FROM {$wpdb->posts} p";
+		$sql .= " LEFT JOIN {$words_table} w ON w.post_id = p.ID";
+		$sql .= " WHERE p.post_type = %s AND p.post_status = 'publish'";
+
+		// limit result to post rows WITHOUT joined rows
+		$sql .= ' AND w.post_id IS NULL';
+
+		if ( $limit > 0 ) {
+			$sql .= sprintf( ' LIMIT %d', $limit );
 		}
 
-		// Update this post as cached
-		update_post_meta( $post_id, RP4WP_Constants::PM_CACHED, 1 );
-
+		// prepare SQL
+		return $wpdb->prepare( $sql, $post_type );
 	}
 
 	/**
 	 * Get uncached posts
 	 *
+	 * @param string $post_type
 	 * @param int $limit
 	 *
 	 * @return array
 	 */
 	public function get_uncached_post_ids( $post_type, $limit = - 1 ) {
 
-		// Get Posts without 'cached' PM
-		return get_posts( array(
-			'fields'         => 'ids',
-			'post_type'      => $post_type,
-			'posts_per_page' => $limit,
-			'post_status'    => 'publish',
-			'meta_query'     => array(
-				array(
-					'key'     => RP4WP_Constants::PM_CACHED,
-					'compare' => 'NOT EXISTS',
-//					'value'   => ''
-				),
-			)
-		) );
+		global $wpdb;
 
+		return $wpdb->get_col( $this->get_uncached_post_sql( $post_type, $limit ) );
 	}
 
 	/**
@@ -549,22 +584,29 @@ class RP4WP_Related_Word_Manager {
 	 * @since  1.6.0
 	 * @access public
 	 *
+	 * @param string $post_type
+	 *
 	 * @return mixed
 	 */
 	public function get_uncached_post_count( $post_type ) {
 		global $wpdb;
 
-		$post_count = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(P.ID) FROM " . $wpdb->posts . " P LEFT JOIN " . $wpdb->postmeta . " PM ON (P.ID = PM.post_id AND PM.meta_key = '" . RP4WP_Constants::PM_CACHED . "') WHERE 1=1 AND P.post_type = '%s' AND P.post_status = 'publish' AND PM.post_id IS NULL GROUP BY P.post_status", $post_type ) );
+		// get SQL
+		$sql = $this->get_uncached_post_sql( $post_type );
 
-		if ( ! is_numeric( $post_count ) ) {
-			$post_count = 0;
-		}
+		// partial replace select
+		$sql = str_replace( "SELECT p.ID", "SELECT COUNT(p.ID)", $sql );
 
-		return $post_count;
+		return $wpdb->get_var( $sql );
 	}
 
 	/**
-	 * Save all words of posts
+	 * Save all words of post type
+	 *
+	 * @param string $post_type
+	 * @param int $limit
+	 *
+	 * @return boolean
 	 */
 	public function save_all_words( $post_type, $limit = - 1 ) {
 		global $wpdb;
@@ -581,7 +623,7 @@ class RP4WP_Related_Word_Manager {
 			foreach ( $post_ids as $post_id ) {
 				$this->save_words_of_post( $post_id, $post_type );
 
-				$done++;
+				$done ++;
 
 				if ( defined( 'WP_CLI' ) && WP_CLI ) {
 					$perc = ceil( ( $done / $total ) * 100 );
@@ -611,9 +653,6 @@ class RP4WP_Related_Word_Manager {
 
 		// Delete words
 		$wpdb->delete( self::get_database_table(), array( 'post_id' => $post_id ), array( '%d' ) );
-
-		// Delete post meta
-		$wpdb->query( $wpdb->prepare( "DELETE FROM $wpdb->postmeta WHERE `meta_key` = '" . RP4WP_Constants::PM_CACHED . "' AND `post_id` = %d ;", $post_id ) );
 	}
 
 	/**
@@ -628,9 +667,6 @@ class RP4WP_Related_Word_Manager {
 
 		// Delete words
 		$wpdb->delete( self::get_database_table(), array( 'post_type' => $post_type ), array( '%s' ) );
-
-		// Delete post meta
-		$wpdb->query( $wpdb->prepare( "DELETE FROM $wpdb->postmeta WHERE `meta_key` = '" . RP4WP_Constants::PM_CACHED . "' AND `post_id` IN (SELECT `ID` FROM $wpdb->posts WHERE `post_type` = '%s' ) ;", $post_type ) );
 	}
 
 }

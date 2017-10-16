@@ -15,6 +15,12 @@ class RP4WP_Hook_Delete_Words extends RP4WP_Hook {
 			return;
 		}
 
+		// check if post type is installed
+		$pt_manager = new RP4WP_Post_Type_Manager();
+		if ( ! $pt_manager->is_post_type_installed( get_post_type( $post_id ) ) ) {
+			return;
+		}
+
 		// Related Post Manager
 		$related_word_manager = new RP4WP_Related_Word_Manager();
 		$related_word_manager->delete_words_by_post_id( $post_id );

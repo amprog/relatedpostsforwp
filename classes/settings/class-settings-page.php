@@ -221,6 +221,9 @@ abstract class RP4WP_Settings_Page {
 			case 'configurator':
 				$this->configurator( $field );
 				break;
+            case 'category_list':
+                $this->category_list( $field );
+                break;
 		}
 
 		// Description
@@ -325,11 +328,12 @@ abstract class RP4WP_Settings_Page {
 					}
 
 				} else {
+				    // Deactivate the license
 
 					// Get license options
 					$license_options = get_option( 'rp4wp_license', array() );
 
-					// Throw error if there's no license key in the database
+					// Only deactive on server when a license_key is in DB
 					if ( isset( $license_options['licence_key'] ) && '' != $license_options['licence_key'] ) {
 
 						// Try to deactivate the license
@@ -338,12 +342,12 @@ abstract class RP4WP_Settings_Page {
 							'license_key'    => $license_options['licence_key'],
 						) );
 
-						// Set local activation status to false
-						RP4WP_Updater_Key_API::set_activated( false );
-
 						// Set the correct license key as post data
 						$post_data['licence_key'] = $license_options['licence_key'];
 					}
+
+					// Always locally deactivate
+					RP4WP_Updater_Key_API::set_activated( false );
 
 				}
 
@@ -473,6 +477,34 @@ abstract class RP4WP_Settings_Page {
 	}
 
 	/**
+     * Category list field
+     *
+	 * @param $field
+	 */
+	private function category_list( $field ) {
+
+	    $val = $this->get_option( $field['id'] );
+
+		if ( ! is_array( $val ) ) {
+			$val = array();
+		}
+
+		$cats = get_categories( array(
+			'depth'      => 1,
+			'hide_empty' => 0,
+			'orderby'    => 'title'
+		) );
+
+		if(!empty($cats)) {
+		    echo "<ul>";
+		    foreach($cats as $cat) {
+			    echo "<li><input type='checkbox' name='" . $this->page . "[" . $field['id'] . "][]' id='cl" . $cat->term_id . "' value='" . $cat->term_id . "'" . ( in_array( $cat->term_id, $val ) ? " checked='checked'" : "" ) . "/> <label for='cl" . $cat->term_id . "'>" . $cat->name . "</label></li>";
+            }
+            echo "</ul>";
+        }
+    }
+
+	/**
 	 * Configurator field
 	 *
 	 * @param $field
@@ -505,8 +537,15 @@ abstract class RP4WP_Settings_Page {
 						<li><a href="javascript:;" data-type="title">Add Post Title</a></li>
 						<li><a href="javascript:;" data-type="excerpt">Add Post Excerpt</a></li>
 						<li><a href="javascript:;" data-type="image">Add Post Image</a></li>
+						<li><a href="javascript:;" data-type="taxonomy">Add Taxonomy</a></li>
+						<li><a href="javascript:;" data-type="author">Add Author</a></li>
+						<li><a href="javascript:;" data-type="date">Add Date</a></li>
 						<li><a href="javascript:;" data-type="custom">Add Custom Text</a></li>
 						<li><a href="javascript:;" data-type="meta">Add Post Meta</a></li>
+						<li><a href="javascript:;" data-type="readmore">Add Read More Link</a></li>
+                        <?php if ( class_exists( 'WooCommerce' ) ) { ?>
+                        <li><a href="javascript:;" data-type="wcprice">Add WooCommerce Price</a></li>
+                        <?php } ?>
 					</ul>
 				</div>
 			</div>

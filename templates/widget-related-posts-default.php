@@ -1,7 +1,7 @@
 <div class="rp4wp-related-posts rp4wp-related-<?php echo esc_attr( $post_type ); ?>">
 	<?php
 	if ( '' != $heading_text ) {
-		$heading = "<h3>" . $heading_text . "</h3>";
+		$heading = "<h3 class='widget-title'>" . $heading_text . "</h3>";
 		echo apply_filters( 'rp4wp_heading', $heading );
 	}
 	?>

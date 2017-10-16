@@ -8,7 +8,7 @@ class RP4WP {
 
 	private static $instance = null;
 
-	const VERSION = '1.5.6';
+	const VERSION = '1.7.3';
 
 	/**
 	 * @var RP4WP_Settings
@@ -93,7 +93,7 @@ class RP4WP {
 		if ( is_admin() && get_option( RP4WP_Constants::OPTION_DO_INSTALL, false ) ) {
 
 			// Redirect the user
-			add_action( 'init', array( $this, 'redirect_to_installer' ), 1 );
+			add_action( 'init', array( $this, 'start_installer' ), 1 );
 
 			// Delete do install site option
 			delete_option( RP4WP_Constants::OPTION_DO_INSTALL );
@@ -103,6 +103,10 @@ class RP4WP {
 			// Check if we need to display an 'is installing' notice
 			$is_installing_notice = new RP4WP_Is_Installing_Notice();
 			$is_installing_notice->check();
+
+			// check for dependencies
+			$dep = new RP4WP_Dependencies();
+			$dep->check();
 		}
 
 		// Setup settings
@@ -119,9 +123,7 @@ class RP4WP {
 		$manager_hook->load_hooks();
 
 		// Include template functions
-		if ( ! is_admin() ) {
-			require_once( plugin_dir_path( self::get_plugin_file() ) . '/includes/template-functions.php' );
-		}
+		require_once( plugin_dir_path( self::get_plugin_file() ) . '/includes/template-functions.php' );
 
 		// WP-CLI commands
 		if ( defined( 'WP_CLI' ) && WP_CLI ) {
@@ -132,16 +134,15 @@ class RP4WP {
 	}
 
 	/**
-	 * Redirect the user to installer on init, because wp_create_nonce can't be called before init.
+	 * Start the plugin installation process
 	 *
-	 * @since  1.0.0
+	 * @since  1.7.0
 	 * @access public
 	 *
 	 */
-	public function redirect_to_installer() {
-		// Redirect to installation wizard
-		wp_redirect( admin_url() . '?page=rp4wp_install&rp4wp_nonce=' . wp_create_nonce( RP4WP_Constants::NONCE_INSTALL ), 307 );
-		exit;
+	public function start_installer() {
+		$installer = new RP4WP_Installer();
+		$installer->run();
 	}
 
 	/**
@@ -165,6 +166,7 @@ class RP4WP {
 
 		// Add other settings pages
 		$this->settings['configurator'] = new RP4WP_Settings_Configurator();
+		$this->settings['categories']   = new RP4WP_Settings_Categories();
 		$this->settings['weights']      = new RP4WP_Settings_Weights();
 		$this->settings['words']        = new RP4WP_Settings_Words();
 		$this->settings['license']      = new RP4WP_Settings_License();

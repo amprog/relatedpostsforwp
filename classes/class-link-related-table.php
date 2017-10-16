@@ -93,7 +93,8 @@ class RP4WP_Link_Related_Table extends WP_List_Table {
 		$columns = array(
 			'cb'        => '<input type="checkbox" />',
 			'title'     => __( 'Title', 'related-posts-for-wp' ),
-			'post_type' => __( 'Post Type', 'related-posts-for-wp' )
+			'post_type' => __( 'Post Type', 'related-posts-for-wp' ),
+			'post_date' => __( 'Post Date', 'related-posts-for-wp' ),
 		);
 
 		return $columns;
@@ -186,7 +187,8 @@ class RP4WP_Link_Related_Table extends WP_List_Table {
 				$this->data[] = array(
 					'ID'        => $post->ID,
 					'title'     => $post->post_title,
-					'post_type' => $post->post_type
+					'post_type' => $post->post_type,
+					'post_date' => date_i18n( get_option( 'date_format' ), strtotime( $post->post_date ) )
 				);
 			}
 		}
@@ -216,6 +218,7 @@ class RP4WP_Link_Related_Table extends WP_List_Table {
 		if ( ! $this->is_related ) {
 			$sortable_columns['title']     = array( 'title', false );
 			$sortable_columns['post_type'] = array( 'post_type', false );
+			$sortable_columns['post_date'] = array( 'post_date', false );
 		}
 
 		return $sortable_columns;
@@ -288,12 +291,20 @@ class RP4WP_Link_Related_Table extends WP_List_Table {
 	 * @return mixed
 	 */
 	public function column_default( $item, $column_name ) {
+		$return = '';
 		switch ( $column_name ) {
 			case 'post_type':
 				$post_type = get_post_type_object( $item[ $column_name ] );
-
-				return $post_type->labels->singular_name;
+				$return    = $post_type->labels->singular_name;
+				break;
+			default:
+				if ( isset( $item[ $column_name ] ) ) {
+					return $item[ $column_name ];
+				}
+				break;
 		}
+
+		return $return;
 	}
 
 	/**

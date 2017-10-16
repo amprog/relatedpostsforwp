@@ -45,7 +45,7 @@ class RP4WP_Hook_Related_Auto_Link extends RP4WP_Hook {
 			$already_linked_posts = $pl_manager->get_children_count( $post->ID );
 
 			// Subtract already linked post count from posts to link amount
-			if ( count( $already_linked_posts ) > 0 ) {
+			if ( $already_linked_posts > 0 ) {
 				$automatic_linking_post_amount = $automatic_linking_post_amount - $already_linked_posts;
 			}
 

@@ -158,55 +158,57 @@ class RP4WP_Manager_Component {
 				$col_width_edges  = ( 100 / $cols ) - 1;
 
 				// Basic component styling
-				$css .= 'ul.rp4wp-posts-list {float: left;}
-					.rp4wp-col {
-						width: 100%;
-						margin-bottom: 30px;
-						list-style:none;
-						box-sizing: border-box;
+				$css .= '
+					.rp4wp-related-posts { width:100%; overflow:hidden;}
+					ul.rp4wp-posts-list {width:100%; margin:0 !important; padding:0 !important; list-style:none !important; float:left;}
+					ul.rp4wp-posts-list .rp4wp-col {
+						width:100% !important;
+						margin-bottom:30px !important;
+						list-style:none !important;
+						box-sizing:border-box;
 						overflow:hidden;
-						float: left;
+						float:left;
 					}
 					.rp4wp_component_wrapper {
-						width: 100%;
-						float: left;
+						width:100% !important;
+						float:left;
 					}
 					.rp4wp_component {
-						width: 100%;
-						padding: 0 0 5%;
-						box-sizing: border-box;
-						float: left;
-						overflow: hidden;
+						width:100% !important;
+						padding:0 0 5% !important;
+						box-sizing:border-box;
+						float:left;
+						overflow:hidden !important;
 					}
-					.rp4wp_component a {border:0;}
-					.rp4wp_component_image a {display:block; height:100%} .rp4wp_component_image img {width:100%;height:100%;}
-					.rp4wp_component_title a {text-decoration: none; font-weight: bold; border: 0;}
+					.rp4wp_component a {border:0 !important;}
+					.rp4wp_component_image a {display:block; height:100% !important;} .rp4wp_component_image img {width:100% !important;height:100% !important;}
+					.rp4wp_component_title a {text-decoration:none !important; font-weight:bold; border:0 !important;}
 
 					@media (min-width: 768px) {
-						.rp4wp-col {
-							width: ' . $col_width_normal . '%;
-							' . ( ( 0 != $fixed_height ) ? 'height:' . $fixed_height . 'px;' : '' ) . '
-							padding: 0 2%;
+						ul.rp4wp-posts-list .rp4wp-col {
+							width:' . $col_width_normal . '% !important;
+							' . ( ( 0 != $fixed_height ) ? 'height:' . $fixed_height . 'px !important;' : '' ) . '
+							padding:0 2% !important;
 
 						}
-						.rp4wp-col-first {
-							width: ' . $col_width_edges . '%;
-							padding-left:0;
-							padding-right: 2%;
+						ul.rp4wp-posts-list .rp4wp-col-first {
+							width:' . $col_width_edges . '% !important;
+							padding-left:0 !important;
+							padding-right:2% !important;
 						}
-						.rp4wp-col-last {
-							width: ' . $col_width_edges . '%;
-							padding-right:0;
-							padding-left: 2%;
+						ul.rp4wp-posts-list .rp4wp-col-last {
+							width:' . $col_width_edges . '% !important;
+							padding-right:0 !important;
+							padding-left:2% !important;
 						}
 						.rp4wp_component_wrapper {
-							width: 50%;
+							width:50% !important;
 						}
 						.rp4wp_component_wrapper_left {
-							padding-right: 5%;
+							padding-right:5% !important;
 						}
 						.rp4wp_component_wrapper_right {
-							padding-left:5%;
+							padding-left:5% !important;
 						}
 					}
 			';
@@ -215,25 +217,25 @@ class RP4WP_Manager_Component {
 				if ( is_rtl() ) {
 					$css .= '
 				.rp4wp-col {
-					float: right;
+					float:right;
 				}
 
 				@media (min-width: 768px) {
-						.rp4wp-col-first {
-							padding-right:0;
-							padding-left: 2%;
+						ul.rp4wp-posts-list .rp4wp-col-first {
+							padding-right:0 !important;
+							padding-left:2% !important;
 						}
-						.rp4wp-col-last {
-							padding-left:0;
-							padding-right: 2%;
+						ul.rp4wp-posts-list .rp4wp-col-last {
+							padding-left:0 !important;
+							padding-right:2% !important;
 						}
 						.rp4wp_component_wrapper_left {
-							padding-left: 5%;
-							padding-right: 0;
+							padding-left:5% !important;
+							padding-right:0 !important;
 						}
 						.rp4wp_component_wrapper_right {
-							padding-right:5%;
-							padding-left: 0;
+							padding-right:5% !important;
+							padding-left:0 !important;
 						}
 					}
 				';
@@ -245,14 +247,14 @@ class RP4WP_Manager_Component {
 
 					// add component with the correct height
 					$css .= '.rp4wp_component_' . $component->id . '{
-					height: ' . ( 20 * $component->height ) . '%;
+					height:' . ( 20 * $component->height ) . '% !important;
 				}';
 
 					// add dynamic height for components in wrapper
 					if ( 'wrapper' == $component->type ) {
 						foreach ( $component->components as $inner_component ) {
 							$css .= '.rp4wp_component_' . $inner_component->id . '{
-								height: ' . ( ( 100 / $component->height ) * $inner_component->height ) . '%;
+								height:' . ( ( 100 / $component->height ) * $inner_component->height ) . '% !important;
 						}';
 						}
 					}
@@ -265,7 +267,7 @@ class RP4WP_Manager_Component {
 				}
 
 				// Output the CSS
-				$css = trim( $css );
+				$css = trim( str_replace( array( PHP_EOL, "\t" ), "", $css ) );
 			}
 
 			// set transient

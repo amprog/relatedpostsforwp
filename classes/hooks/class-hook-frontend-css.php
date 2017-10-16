@@ -23,7 +23,10 @@ class RP4WP_Hook_Frontend_Css extends RP4WP_Hook {
 
 				// output css
 				if ( '' != $css ) {
-					echo "<style type='text/css'>" . $css . "</style>" . PHP_EOL;
+					echo "<!-- Related Posts for WP Premium CSS -->
+<style type='text/css'>
+" . $css . "
+</style>" . PHP_EOL;
 				}
 			}
 		}

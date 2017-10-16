@@ -209,7 +209,7 @@ class RP4WP_Thumbnail_Helper {
 		}
 
 		// find first image in content if thumbnail still empty
-		if ( empty( $thumbnail ) ) {
+		if ( empty( $thumbnail ) && apply_filters( 'rp4wp_thumbnail_use_inline_images', true, $post_id, $post_type ) ) {
 			$thumbnail = $this->get_first_image( $post_id, $post_type );
 		}
 

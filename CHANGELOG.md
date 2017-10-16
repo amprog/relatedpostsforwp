@@ -1,14 +1,75 @@
+#### 1.7.3: October 10, 2017
+* Tweak: Fixed an issue where sticky posts were always included in related posts.
+
+#### 1.7.2: October 4, 2017
+* Tweak: Fixed an issue that caused mixed post types to not be correctly displayed on frontend.
+* Tweak: Always deactivate local license on deactivation request.
+* Tweak: Tweaked default CSS to force specific CSS rules.
+* Tweak: Added clearer installation instructions to installation wizard step 1.
+* Tweak: Updated various translations.
+
+#### 1.7.1: September 7, 2017
+* Tweak: Fixed an issue where category limitation didn't work correctly.
+
+#### 1.7.0: September 7, 2017
+* Feature: Added the option to set output template in widget.
+* Feature: New related post is found for parents of posts that are put back to draft or deleted.
+* Feature: Added WooCommerce price component.
+* Feature: Added option to only find related posts in certain categories. See new 'categories' tab.
+* Tweak: Rewrite of installation procedure so we can properly handle activation of plugin when free plugin is still active. 
+* Tweak: Fixed jQuery lib include for HTTPS websites
+* Tweak: Fixed incorrect matching of duplicate related content.
+* Tweak: Fixed incorrect matching of non-published content.
+* Tweak: Fixed an issue with related content count being incorrect on automated related post append.
+* Tweak: UL class rp4wp-posts-list now has a default width of 100%.
+* Tweak: Added 'rp4wp_max_post_age' filter.
+* Tweak: Added 'rp4wp_excluded_ids' filter.
+* Tweak: Plugin is now checking if required mbstring PHP extension is installed.
+* Tweak: Fixed a conflict with other plugins that use the SweetAlert library.
+* Tweak: Updated various translations.
+
+#### 1.6.0: August 25, 2016
+* Feature: Added Taxonomy component to Configurator.
+* Feature: Added Post Author component to Configurator.
+* Feature: Added Post Date component to Configurator.
+* Feature: Added Read More component to Configurator.
+* Feature: Added 'reset to default' option to weights.
+* Tweak: Improved Content Matching Score algorithm. Better related content result.
+* Tweak: Added post dates to manual linking screen.
+* Tweak: Fixed Configurator Component Tool tips.
+* Tweak: Added 'rp4wp_related_posts_list' filter to generate_related_posts_list().
+* Tweak: Added 'rp4wp_custom_tax_weight' filter allowing you to filter custom category weight different per custom taxonomy and term.
+* Tweak: German translation update. Props Silvan Hagen.
+
+#### 1.5.9: June 24, 2016
+* Tweak: Added 'rp4wp_thumbnail_use_inline_images' filter to prevent the use of inline images.
+* Tweak: Fixed issue with search queries with multiple words in manual post linking
+
+#### 1.5.8: May 12, 2016
+* Tweak: Fixed a cross post-type caching bug.
+* Tweak: Fixed a bug that caused the word caching progress bar to be incorrect.
+* Tweak: Removed DateTime method chaining as PHP 5.2 doesn't support this.
+
+#### 1.5.7: May 2, 2016
+* Tweak: Always load template functions because some plugins execute shortcode/widget related code in admin.
+* Tweak: Added widget-title class to h3 element in widget template.
+* Tweak: Various performance optimizations, props [Danny van Kooten](https://github.com/dannyvankooten).
+* Tweak: Fixed a bug that caused the search query to reset when navigating through pages on the manual linking page.
+* Tweak: Properly escaping page request variable in manual linking screen now.
+* Tweak: Added check if post type is installed before words from cache are cleared.
+* Tweak: Various translations updates.
+
 #### 1.5.6: January 22, 2016
-* Fixed a bug where thumbnails were not loaded when images in posts were not full size.
+* Tweak: Fixed a bug where thumbnails were not loaded when images in posts were not full size.
 
 #### 1.5.5: January 11, 2016
-* Fixed a bug that caused too many related posts to be created when related posts were added prior publishing the post.
+* Tweak: Fixed a bug that caused too many related posts to be created when related posts were added prior publishing the post.
 
 #### 1.5.4: December 30, 2015
-* Fixed a shortcode bug where the output would be placed on top of the post.
+* Tweak: Fixed a shortcode bug where the output would be placed on top of the post.
 
 #### 1.5.3: November 25, 2015
-* Fixed an post exclusion related SQL error causing posts not to link.
+* Tweak: Fixed an post exclusion related SQL error causing posts not to link.
 
 #### 1.5.2: November 18, 2015
 * Tweak: Fixed a bug where post exclude data got corrupted causing posts not to related properly.

@@ -18,7 +18,7 @@ class RP4WP_Settings_General extends RP4WP_Settings_Page {
 		$this->set_title( sprintf( __( 'General settings for %s', 'related-posts-for-wp' ), $post_type ) );
 
 		// The fields
-		$this->sections = array(
+		$this->sections = apply_filters( 'rp4wp_premium_settings_sections', array(
 			self::PREFIX . 'automatic_linking'     => array(
 				'id'          => 'automatic_linking',
 				'label'       => sprintf( __( 'Automatic %ss linking', 'related-posts-for-wp' ), $post_type ),
@@ -110,7 +110,7 @@ class RP4WP_Settings_General extends RP4WP_Settings_Page {
 					),
 				)
 			)
-		);
+		), $post_type );
 
 		// Parent constructor
 		parent::__construct();

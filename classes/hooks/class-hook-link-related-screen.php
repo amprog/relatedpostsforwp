@@ -9,8 +9,14 @@ class RP4WP_Hook_Link_Related_Screen extends RP4WP_Hook {
 
 	public function run() {
 
+		// handle singular link creation
 		$this->handle_create_link();
+
+		// handle bulk linking
 		$this->handle_bulk_link();
+
+		// catch search requests
+		$this->catch_search();
 
 		// Add Page
 		$screen_hook = add_submenu_page( null, 'Link_Related_Screen', 'Link_Related_Screen', 'edit_posts', 'rp4wp_link_related', array(
@@ -27,10 +33,36 @@ class RP4WP_Hook_Link_Related_Screen extends RP4WP_Hook {
 	 */
 	public function init_screen() {
 		add_screen_option( 'per_page', array(
-			'label' => 'Posts',
+			'label'   => 'Posts',
 			'default' => 20,
-			'option' => 'rp4wp_per_page'
+			'option'  => 'rp4wp_per_page'
 		) );
+	}
+
+	/**
+	 * Catch post search requests on our manually linking page and do a post to get
+	 */
+	private function catch_search() {
+		if ( isset( $_GET['page'] ) && 'rp4wp_link_related' == $_GET['page'] && isset ( $_POST['s'] ) ) {
+
+			$base_url = admin_url( sprintf( 'admin.php?page=rp4wp_link_related&rp4wp_parent=%d&rp4wp_view=%s', absint( $_GET['rp4wp_parent'] ), $_GET['rp4wp_view'] ) );
+
+			if ( ! empty( $_POST['s'] ) ) {
+
+				$s = urlencode( $_POST['s'] );
+
+				// post to get solution
+				$url = add_query_arg( 's', $s, $base_url );
+
+			} else {
+				$url = remove_query_arg( 's', $base_url );
+			}
+
+			// post to get solution
+			wp_redirect( $url, 302 );
+
+			exit;
+		}
 	}
 
 	/**
@@ -145,8 +177,8 @@ class RP4WP_Hook_Link_Related_Screen extends RP4WP_Hook {
 
 		// Catch search string
 		$search = null;
-		if ( isset( $_POST['s'] ) && $_POST['s'] != '' ) {
-			$search = $_POST['s'];
+		if ( isset( $_GET['s'] ) && $_GET['s'] != '' ) {
+			$search = $_GET['s'];
 		}
 
 		?>
@@ -158,7 +190,7 @@ class RP4WP_Hook_Link_Related_Screen extends RP4WP_Hook {
 			</h2>
 
 			<form id="sp-list-table-form" method="post">
-				<input type="hidden" name="page" value="<?php echo $_REQUEST['page'] ?>"/>
+				<input type="hidden" name="page" value="<?php esc_attr_e( $_REQUEST['page'] ); ?>"/>
 				<?php
 				// Create the link table
 				$list_table = new RP4WP_Link_Related_Table( $parent_post_type );
@@ -178,6 +210,6 @@ class RP4WP_Hook_Link_Related_Screen extends RP4WP_Hook {
 			</form>
 		</div>
 
-	<?php
+		<?php
 	}
 }

@@ -86,6 +86,8 @@
 
     th {
       text-align: left;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #3B3B3B;
     }
 
     td {
@@ -107,6 +109,7 @@
 
     td.rp4wp-parent {
       width: 20%;
+      font-weight:bold;
     }
 
     td.rp4wp-children {
@@ -194,11 +197,15 @@
           }
         }
 
+        li.rp4wp-child-not-installed {
+          font-style: italic;
+        }
+
       }
     }
 
     td.rp4wp-button {
-      width: 15%;
+      width: 20%;
       text-align: center;
 
       .button {

@@ -37,17 +37,7 @@ class RP4WP_Hook_Admin_Scripts extends RP4WP_Hook {
 
 			// Configurator
 			if ( 'rp4wp_configurator' === $_GET['page'] ) {
-
-				// Load the configurator file
-				/*
-				wp_enqueue_script(
-					'rp4wp_lodash',
-					plugins_url( '/assets/js/configurator/lodash.min.js', RP4WP::get_plugin_file() ),
-					array( 'jquery' ),
-					RP4WP::VERSION
-				);
-				*/
-
+				
 				wp_enqueue_script( 'jquery-ui-core' );
 				wp_enqueue_script( 'jquery-ui-widget' );
 				wp_enqueue_script( 'jquery-ui-mouse' );

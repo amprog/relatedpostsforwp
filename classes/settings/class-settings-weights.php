@@ -25,6 +25,14 @@ class RP4WP_Settings_Weights extends RP4WP_Settings_Page {
 				'description' => __( "Easily adjust the weights by using the sliders below. Please note that you need to rerun the installer after changing weights.", 'related-posts-for-wp' ),
 				'fields'      => array(
 					array(
+						'id'          => 'weight_reset',
+						'label'       => __( 'Reset Weight', 'related-posts-for-wp' ),
+						'description' => __( "Reset the weights back to their defaults. Don't forget to Save the Changes after resetting the weights.", 'related-posts-for-wp' ),
+						'type'        => 'button_link',
+						'href'        => 'javascript:RP4WP_Weight_Reset();',
+						'default'     => __( 'Reset Weight', 'related-posts-for-wp' ),
+					),
+					array(
 						'id'          => 'weight_title',
 						'label'       => __( 'Title', 'related-posts-for-wp' ),
 						'description' => __( 'The weight of the title.', 'related-posts-for-wp' ),

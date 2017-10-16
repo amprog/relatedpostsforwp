@@ -16,11 +16,10 @@ abstract class RP4WP_Constants {
 	const PM_MANUAL = 'rp4wp_manual';
 
 	// Post meta
-	const PM_CACHED = 'rp4wp_cached'; // Posts that words are saved of
 	const PM_POST_AUTO_LINKED = 'rp4wp_auto_linked'; // Posts that have automatically linked posts
 
 	// Options
-	const OPTION_DO_INSTALL = 'rp4wp_do_install';
+	const OPTION_DO_INSTALL = 'rp4wp_premium_start_install';
 	const OPTION_IS_INSTALLING = 'rp4wp_is_installing';
 
 	// Nag options

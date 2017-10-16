@@ -3,7 +3,7 @@
 	Plugin Name: Related Posts for WordPress Premium
 	Plugin URI: http://www.relatedpostsforwp.com/
 	Description: The best way to display related posts in WordPress.
-	Version: 1.5.6
+	Version: 1.7.3
 	Author: Never5
 	Author URI: http://www.never5.com/
 	License: GPL v3
@@ -28,6 +28,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 function rp4wp_pro_load_plugin() {
 
+	if ( defined( 'RP4WP_PLUGIN_FILE' ) ) {
+		return false;
+	}
+
 	// Define
 	define( 'RP4WP_PLUGIN_FILE', __FILE__ );
 
@@ -50,7 +54,6 @@ if ( is_admin() && ! is_multisite() && ( false === defined( 'DOING_AJAX' ) || fa
 
 	// include files
 	require_once dirname( __FILE__ ) . '/vendor/autoload_52.php';
-	require_once dirname( __FILE__ ) . '/includes/functions.php';
 
 	// Load installer functions
 	require_once plugin_dir_path( __FILE__ ) . 'includes/installer-functions.php';

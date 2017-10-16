@@ -23,3 +23,16 @@ jQuery(function ($) {
    });
 
 });
+
+function RP4WP_Weight_Reset() {
+	var defaults = [80, 20, 20, 10, 15];
+	var sliders = jQuery( '.rp4wp-weight-slider' );
+
+	for ( var i = 0; i < defaults.length; i ++ ) {
+
+		if( sliders[ i ] != undefined ) {
+			jQuery( sliders[ i ] ).find('input').val( defaults [ i ] ).trigger( 'change' );
+		}
+
+	}
+}

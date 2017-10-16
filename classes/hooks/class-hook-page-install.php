@@ -37,7 +37,7 @@ class RP4WP_Hook_Page_Install extends RP4WP_Hook {
 		// Make JavaScript strings translatable
 		wp_localize_script( 'rp4wp-install-js', 'rp4wp_js', RP4WP_Javascript_Strings::get() );
 
-		wp_enqueue_style( 'jquery-ui-smoothness', "https://ajax.googleapis.com/ajax/libs/jqueryui/" . $wp_scripts->query( 'jquery-ui-core' )->ver . "/themes/smoothness/jquery-ui.css", false, null );
+		wp_enqueue_style( 'jquery-ui-smoothness', "//ajax.googleapis.com/ajax/libs/jqueryui/" . $wp_scripts->query( 'jquery-ui-core' )->ver . "/themes/smoothness/jquery-ui.css", false, null );
 	}
 
 	/**
@@ -75,8 +75,8 @@ class RP4WP_Hook_Page_Install extends RP4WP_Hook {
 
 		// Try to create the cache table if we're in step 1 and this is a multisite
 		if ( 1 == $cur_step && is_multisite() ) {
-			require_once plugin_dir_path( RP4WP_PLUGIN_FILE ) . 'includes/installer-functions.php';
-			rp4wp_premium_create_db_table();
+		    $installer = new RP4WP_Installer();
+		    $installer->create_database_table();
 		}
 
 		// Check installer resume options
@@ -91,7 +91,24 @@ class RP4WP_Hook_Page_Install extends RP4WP_Hook {
 			// Get the available post types
 			$ptm = new RP4WP_Post_Type_Manager();
 
-			$linked_pt_count = count( $ptm->get_installed_post_type( $post_type ) );
+			// get what post types are installed on $post_type
+			$ptm_installed_post_types = $ptm->get_installed_post_type( $post_type );
+
+			// total linked count
+			$linked_pt_count = count( $ptm_installed_post_types );
+
+			// Adding parent post type to the 'to be linked' array
+			array_unshift( $ptm_installed_post_types, $post_type );
+
+			// total posts is only those uncached
+			$rwm              = new RP4WP_Related_Word_Manager();
+			$total_post_count = $rwm->get_uncached_post_count( $post_type );
+
+		} else if ( 3 == $cur_step ) {
+
+			// amount of posts need linking
+			$related_post_manager = new RP4WP_Related_Post_Manager();
+			$total_post_count     = $related_post_manager->get_unlinked_post_count( $post_type );
 
 		} elseif ( 4 == $cur_step ) {
 
@@ -106,229 +123,235 @@ class RP4WP_Hook_Page_Install extends RP4WP_Hook {
 			<ul class="install-steps">
 				<?php
 
-		foreach ( $steps as $step => $label ) {
-			echo "<li id='step-bar-" . $step . "'" . ( ( $cur_step == $step ) ? " class='step-bar-active'" : "" ) . "><span>" . $step . '. ' . $label . "</span></li>" . PHP_EOL;
-		}
-		?>
+				foreach ( $steps as $step => $label ) {
+					echo "<li id='step-bar-" . $step . "'" . ( ( $cur_step == $step ) ? " class='step-bar-active'" : "" ) . "><span>" . $step . '. ' . $label . "</span></li>" . PHP_EOL;
+				}
+				?>
 			</ul>
-			<br class="clear" />
+			<br class="clear"/>
 
 			<h3><?php echo $steps[ $cur_step ]; ?></h3>
 
 			<?php
-		echo "<div class='rp4wp-step rp4wp-step-" . $cur_step . "' rel='" . $cur_step . "'>";
+			echo "<div class='rp4wp-step rp4wp-step-" . $cur_step . "' rel='" . $cur_step . "'>";
 
-		// Hidden fields
-		echo "<input type='hidden' id='rp4wp_admin_url' value='" . admin_url() . "' />" . PHP_EOL;
+			// Hidden fields
+			echo "<input type='hidden' id='rp4wp_admin_url' value='" . admin_url() . "' />" . PHP_EOL;
 
-		// Echo the post type & total posts when post type is set
-		if ( ! empty( $post_type ) ) {
-			echo "<input type='hidden' id='rp4wp_post_type' value='" . $post_type . "' />" . PHP_EOL;
-			echo "<input type='hidden' id='rp4wp_total_posts' value='" . wp_count_posts( $post_type )->publish . "' />" . PHP_EOL;
-		}
+			// Echo the post type & total posts when post type is set
+			if ( ! empty( $post_type ) ) {
+				echo "<input type='hidden' id='rp4wp_post_type' value='" . $post_type . "' />" . PHP_EOL;
 
-		// Echo the amount of linked post types
-		if ( isset( $linked_pt_count ) ) {
-			echo "<input type='hidden' id='linked_pt_count' value='" . $linked_pt_count . "' />" . PHP_EOL;
-		}
+			}
 
-		// Echo the current linked post type
-		if ( isset( $linked_pt_cur ) ) {
-			echo "<input type='hidden' id='linked_pt_cur' value='" . $linked_pt_cur . "' />" . PHP_EOL;
-		}
+			if ( isset( $total_post_count ) ) {
+				echo "<input type='hidden' id='rp4wp_total_posts' value='" . $total_post_count . "' />" . PHP_EOL;
+			}
 
-		// Echo the nonce
-		if ( ! empty( $installer_nonce ) ) {
-			echo "<input type='hidden' id='rp4wp_nonce' value='" . $installer_nonce . "' />" . PHP_EOL;
-		}
+			// Echo the amount of linked post types
+			if ( isset( $linked_pt_count ) ) {
+				echo "<input type='hidden' id='linked_pt_count' value='" . $linked_pt_count . "' />" . PHP_EOL;
+			}
 
-		// AJAX nonce
-		echo '<input type="hidden" name="rp4wp-ajax-nonce" id="rp4wp-ajax-nonce" value="' . wp_create_nonce( RP4WP_Constants::NONCE_AJAX ) . '" />';
+			// Echo the current linked post type
+			if ( isset( $linked_pt_cur ) ) {
+				echo "<input type='hidden' id='linked_pt_cur' value='" . $linked_pt_cur . "' />" . PHP_EOL;
+			}
 
-		switch ( $cur_step ) {
-			case 1:
-				?>
-				<p><?php _e( 'Thank you for choosing Related Posts for WordPress!', 'related-posts-for-wp' ); ?></p>
-				<p><?php _e( "Below you'll find your post types available for installation, by installing a post type we'll set up a cache and offer you the ability to automatic link (custom) posts. To install a post type, simply click the 'Install Post Type' button.", 'related-posts-for-wp' ); ?></p>
-				<h3>Post Types</h3>
-				<?php
+			// Echo the nonce
+			if ( ! empty( $installer_nonce ) ) {
+				echo "<input type='hidden' id='rp4wp_nonce' value='" . $installer_nonce . "' />" . PHP_EOL;
+			}
 
-				// Get the available post types
-				$ptm = new RP4WP_Post_Type_Manager();
+			// AJAX nonce
+			echo '<input type="hidden" name="rp4wp-ajax-nonce" id="rp4wp-ajax-nonce" value="' . wp_create_nonce( RP4WP_Constants::NONCE_AJAX ) . '" />';
 
-				// Get installed post types
-				$installed_post_types = $ptm->get_installed_post_types();
+			switch ( $cur_step ) {
+				case 1:
+					?>
+					<p><?php _e( 'Thank you for choosing Related Posts for WordPress!', 'related-posts-for-wp' ); ?></p>
+					<p><?php _e( "Below you'll find your post types available for installation, by installing a post type we'll set up a cache and offer you the ability to automatic link (custom) posts.", 'related-posts-for-wp' ); ?></p>
+                    <p>
+                        <?php _e( 'To setup related posts, follow these steps:', 'related-posts-for-wp' ); ?>
+                        <ol>
+                            <li><?php printf( __( "Click the %s of the post type you would like to add related content to.", 'related-posts-for-wp' ), "<strong>" . __( 'pencil button', 'related-posts-for-wp' ) . "</strong>" ); ?></li>
+                            <li><?php printf( __( 'Click the %s button.', 'related-posts-for-wp' ), "<strong>" . __( 'Add New Post Type', 'related-posts-for-wp' ) . "</strong>" ); ?></li>
+                            <li><?php printf( __( "Select what post type should be added and click the %s button", 'related-posts-for-wp' ), "<strong>+</strong>" ); ?></li>
+                            <li><?php _e( "Repeat step 2 and 3 if you want to add content of multiple post types to the parent post type.", 'related-posts-for-wp' ); ?></li>
+                            <li><?php printf( __( "Press the %s, you will be redirect to the wizard to help you setup the related content", 'related-posts-for-wp' ), "<strong>" . __( 'Save (Floppy) icon', 'related-posts-for-wp' ) . "</strong>" ); ?></li>
+                        </ol>
+                    </p>
+					<h3>Post Types</h3>
+					<?php
 
-				// Available post types
-				$available_post_types = $ptm->get_available_post_types();
+					// Get the available post types
+					$ptm = new RP4WP_Post_Type_Manager();
 
-				echo '<input type="hidden" id="rp4wp-availabe_post_types" value="' . implode( ',', array_keys( $available_post_types ) ) . '" />';
+					// Get installed post types
+					$installed_post_types = $ptm->get_installed_post_types();
 
-				echo '<table cellpadding="0" cellspacing="0" border="0" class="rp4wp-table-pt-overview">' . PHP_EOL;
+					// Available post types
+					$available_post_types = $ptm->get_available_post_types();
 
-				echo "<tr>" . PHP_EOL;
-				echo "<th>" . __( 'Post Type', 'related-posts-for-wp' ) . "</th>" . PHP_EOL;
-				echo "<th>" . __( 'Related to Post Types', 'related-posts-for-wp' ) . "</th>" . PHP_EOL;
-				echo "<th>&nbsp;</th>" . PHP_EOL;
-				echo "</tr>" . PHP_EOL;
+					echo '<input type="hidden" id="rp4wp-availabe_post_types" value="' . implode( ',', array_keys( $available_post_types ) ) . '" />';
 
-				// Da loop
-				if ( count( $available_post_types ) > 0 ) {
+					echo '<table cellpadding="0" cellspacing="0" border="0" class="rp4wp-table-pt-overview">' . PHP_EOL;
 
-					foreach ( $available_post_types as $pt_key => $pt_label ) {
+					echo "<tr>" . PHP_EOL;
+					echo "<th>" . __( 'Post Type', 'related-posts-for-wp' ) . "</th>" . PHP_EOL;
+					echo "<th>" . __( 'Related to Post Types', 'related-posts-for-wp' ) . "</th>" . PHP_EOL;
+					echo "<th>&nbsp;</th>" . PHP_EOL;
+					echo "</tr>" . PHP_EOL;
 
-						$is_active = false;
-						if ( isset( $installed_post_types[ $pt_key ] ) && count( $installed_post_types[ $pt_key ] ) > 0 ) {
-							$is_active = true;
-						}
+					// Da loop
+					if ( count( $available_post_types ) > 0 ) {
 
-						echo '<tr rel="' . $pt_key . '" ' . ( ( ! $is_active ) ? 'class="inactive"' : '' ) . '>';
-						echo '<td class="rp4wp-parent">' . $pt_label . '</td>' . PHP_EOL;
+						foreach ( $available_post_types as $pt_key => $pt_label ) {
 
-						echo '<td class="rp4wp-children">';
-
-						echo '<ul>' . PHP_EOL;
-
-						if ( $is_active ) {
-							foreach ( $installed_post_types[ $pt_key ] as $linked_pt ) {
-								echo '<li id="' . $linked_pt . '"><span>' . $available_post_types[ $linked_pt ] . '</span></li>' . PHP_EOL;
+							$is_active = false;
+							if ( isset( $installed_post_types[ $pt_key ] ) && count( $installed_post_types[ $pt_key ] ) > 0 ) {
+								$is_active = true;
 							}
+
+							echo '<tr rel="' . $pt_key . '" ' . ( ( ! $is_active ) ? 'class="inactive"' : '' ) . '>';
+							echo '<td class="rp4wp-parent">' . $pt_label . '</td>' . PHP_EOL;
+
+							echo '<td class="rp4wp-children">';
+
+							echo '<ul>' . PHP_EOL;
+
+							if ( $is_active ) {
+								foreach ( $installed_post_types[ $pt_key ] as $linked_pt ) {
+									echo '<li id="' . $linked_pt . '"><span>' . $available_post_types[ $linked_pt ] . '</span></li>' . PHP_EOL;
+								}
+							}
+
+							echo '</ul>' . PHP_EOL;
+
+							echo '</td>' . PHP_EOL;
+
+							echo '<td class="rp4wp-button">';
+
+							echo '<div class="rp4wp-buttons-wrap">' . PHP_EOL;
+
+							echo '<a href="javascript:;" class="button button-primary rp4wp-btn-edit rp4wp-has-tip" title="' . __( 'Edit this post type', 'related-posts-for-wp' ) . '" rel="edit"></a>';
+
+							echo '</div>' . PHP_EOL;
+
+							echo '</td>' . PHP_EOL;
+							echo '</tr>';
 						}
 
-						echo '</ul>' . PHP_EOL;
-
-						echo '</td>' . PHP_EOL;
-
-						echo '<td class="rp4wp-button">';
-
-						echo '<div class="rp4wp-buttons-wrap">' . PHP_EOL;
-
-						echo '<a href="javascript:;" class="button button-primary rp4wp-btn-edit rp4wp-has-tip" title="' . __( 'Edit this post type', 'related-posts-for-wp' ) . '" rel="edit"></a>';
-
-						echo '</div>' . PHP_EOL;
-
-						echo '</td>' . PHP_EOL;
-						echo '</tr>';
 					}
 
-				}
+					echo '</table>' . PHP_EOL;
 
-				echo '</table>' . PHP_EOL;
+					break;
+				case 2:
 
-				break;
-			case 2:
-
-				// Echo current uncached posts
-				$related_word_manager = new RP4WP_Related_Word_Manager();
-
-				// amount of posts needs caching
-				$posts_todo = $related_word_manager->get_uncached_post_count( $post_type );
-
-				echo "<input type='hidden' id='rp4wp_posts_todo' value='" . $posts_todo . "' />" . PHP_EOL;
-
-				?>
-				<p><?php _e( 'Thank you for choosing Related Posts for WordPress!', 'related-posts-for-wp' ); ?></p>
-				<p><?php _e( 'Before you can start using Related Posts for WordPress we need to cache your current posts.', 'related-posts-for-wp' ); ?></p>
-				<p><?php _e( "This is a one time process which might take some time now, depending on the amount of posts you have, but will ensure your website's performance when using the plugin.", 'related-posts-for-wp' ); ?></p>
-
-				<p style="font-weight: bold;"><?php _e( 'Do NOT close this window, wait for this process to finish and this wizard to take you to the next step.', 'related-posts-for-wp' ); ?></p>
-
-				<div id="progress-container">
-					<div id="progressbar"></div>
-					<p>Todo: <span id="progress-todo"><?php echo $posts_todo; ?></span></p>
-					<p>Done: <span id="progress-done">0</span></p>
-				</div>
-
-				<?php
-				break;
-			case 3:
-
-				// Echo current unlinked posts
-				$related_post_manager = new RP4WP_Related_Post_Manager();
-
-				// amount of posts need linking
-				$posts_todo = $related_post_manager->get_unlinked_post_count( $post_type );
-
-				echo "<input type='hidden' id='rp4wp_posts_todo' value='" . $posts_todo . "' />" . PHP_EOL;
-
-				// Get the automatic linking post amount
-				$alpa = 3;
-				if ( isset( RP4WP()->settings[ 'general_' . $post_type ] ) ) {
-					$alpa = RP4WP()->settings[ 'general_' . $post_type ]->get_option( 'automatic_linking_post_amount' );
-				}
-
-				// get the post age
-				// Get the automatic linking post amount
-				$max_post_age = 0;
-				if ( isset( RP4WP()->settings[ 'general_' . $post_type ] ) ) {
-					$max_post_age = RP4WP()->settings[ 'general_' . $post_type ]->get_option( 'max_post_age' );
-				}
-
-				?>
-				<p style="font-weight: bold;"><?php _e( 'Great! All your posts were successfully cached!', 'related-posts-for-wp' ); ?></p>
-				<p><?php _e( "You can let me link your posts, based on what I think is related, to each other. And don't worry, if I made a mistake at one of your posts you can easily correct this by editing it manually!", 'related-posts-for-wp' ); ?></p>
-				<p><?php _e( 'Want me to start linking posts to each other? Fill in the amount of related posts each post should have and click on the "Link now" button. Rather link your posts manually? Click "Skip linking".', 'related-posts-for-wp' ); ?></p>
-				<p style="font-weight: bold;"><?php _e( 'Do NOT close this window if you click the "Link now" button, wait for this process to finish and this wizard to take you to the next step.', 'related-posts-for-wp' ); ?></p>
-				<br class="clear"/>
-
-				<div class="rp4wp-install-link-box">
-					<table cellpadding="0" cellspacing="0" border="0">
-						<tr>
-							<td><label for="rp4wp_related_posts_amount"><?php _e( 'Amount of related posts:', 'related-posts-for-wp' ); ?></label></td>
-							<td><input class="form-input-tip" type="text" id="rp4wp_related_posts_amount" value="<?php echo $alpa; ?>" /></td>
-							<td class="rp4pw-install-step3-table-desc"><?php printf( __( 'The amount of related items per %s', 'related-posts-for-wp' ), $post_type ); ?></td>
-						</tr>
-
-
-						<tr>
-							<td><label for="rp4wp_related_posts_age"><?php _e( 'Maximum Post Age:', 'related-posts-for-wp' ); ?></label></td>
-							<td><input class="form-input-tip" type="text" id="rp4wp_related_posts_age" value="<?php echo $max_post_age; ?>"/></td>
-							<td class="rp4pw-install-step3-table-desc"><?php printf( __( 'The maximum age in days of %s that will be linked. (0 = unlimited)', 'related-posts-for-wp' ), $post_type ); ?></td>
-						</tr>
-
-						<tr>
-							<td>&nbsp;</td>
-							<td colspan="2" class="rp4pw-install-step3-table-buttons">
-								<a href="javascript:;" class="button button-primary button-large rp4wp-link-now-btn" id="rp4wp-link-now"><?php _e( 'Link now', 'related-posts-for-wp' ); ?></a>
-								<a href="<?php echo admin_url( sprintf( '?page=rp4wp_install&step=4&pt=%s&&rp4wp_nonce=%s', $post_type, wp_create_nonce( RP4WP_Constants::NONCE_INSTALL ) ) ); ?>" class="button"><?php _e( 'Skip linking', 'related-posts-for-wp' ); ?></a>
-							</td>
-						</tr>
-
-					</table>
-				</div>
-
-				<br class="clear"/>
-
-				<div id="progress-container">
-					<div id="progressbar"></div>
-					<p>Todo: <span id="progress-todo"><?php echo $posts_todo; ?></span></p>
-					<p>Done: <span id="progress-done">0</span></p>
-				</div>
-				<?php
-				break;
-			case 4:
-				?>
-				<p><?php _e( "That's it, you're good to go!", 'related-posts-for-wp' ); ?></p>
-				<p><?php printf( __( 'Thanks again for using Related Posts for WordPress and if you have any questions be sure to ask them at the %sWordPress.org forums.%s', 'related-posts-for-wp' ), '<a href="http://wordpress.org/support/plugin/related-posts-for-wp" target="_blank">', '</a>' ); ?></p>
-				<p>
-					<a href="<?php echo admin_url( sprintf( '?page=rp4wp_install&rp4wp_nonce=%s', wp_create_nonce( RP4WP_Constants::NONCE_INSTALL ) ) ); ?>"
-					   class="button button-primary"><?php _e( 'Click here to return to step 1', 'related-posts-for-wp' ); ?></a>
-				</p>
-				<p>
-					<?php
-					$local_settings = (array) RP4WP()->settings;
-					$first_setting  = array_shift( $local_settings );
-					echo '<a href="' . admin_url( 'options-general.php?page=' . $first_setting->get_page() ) . '" class="button button-primary">' . __( 'Click here to go to the settings page', 'related-posts-for-wp' ) . '</a>';
 					?>
-				</p>
-			<?php
-		}
-		?>
+					<p><?php _e( 'Thank you for choosing Related Posts for WordPress!', 'related-posts-for-wp' ); ?></p>
+					<p><?php _e( 'Before you can start using Related Posts for WordPress we need to cache your current posts.', 'related-posts-for-wp' ); ?></p>
+					<p><?php _e( "This is a one time process which might take some time now, depending on the amount of posts you have, but will ensure your website's performance when using the plugin.", 'related-posts-for-wp' ); ?></p>
+
+					<p style="font-weight: bold;"><?php _e( 'Do NOT close this window, wait for this process to finish and this wizard to take you to the next step.', 'related-posts-for-wp' ); ?></p>
+
+					<div id="progress-container">
+						<div id="progressbar"></div>
+						<p>Todo: <span id="progress-todo"><?php echo $total_post_count; ?></span></p>
+						<p>Done: <span id="progress-done">0</span></p>
+					</div>
+
+					<?php
+					break;
+				case 3:
+
+					// Get the automatic linking post amount
+					$alpa = 3;
+					if ( isset( RP4WP()->settings[ 'general_' . $post_type ] ) ) {
+						$alpa = RP4WP()->settings[ 'general_' . $post_type ]->get_option( 'automatic_linking_post_amount' );
+					}
+
+					// get the post age
+					// Get the automatic linking post amount
+					$max_post_age = 0;
+					if ( isset( RP4WP()->settings[ 'general_' . $post_type ] ) ) {
+						$max_post_age = RP4WP()->settings[ 'general_' . $post_type ]->get_option( 'max_post_age' );
+					}
+
+					?>
+					<p style="font-weight: bold;"><?php _e( 'Great! All your posts were successfully cached!', 'related-posts-for-wp' ); ?></p>
+					<p><?php _e( "You can let me link your posts, based on what I think is related, to each other. And don't worry, if I made a mistake at one of your posts you can easily correct this by editing it manually!", 'related-posts-for-wp' ); ?></p>
+					<p><?php _e( 'Want me to start linking posts to each other? Fill in the amount of related posts each post should have and click on the "Link now" button. Rather link your posts manually? Click "Skip linking".', 'related-posts-for-wp' ); ?></p>
+					<p style="font-weight: bold;"><?php _e( 'Do NOT close this window if you click the "Link now" button, wait for this process to finish and this wizard to take you to the next step.', 'related-posts-for-wp' ); ?></p>
+					<br class="clear"/>
+
+					<div class="rp4wp-install-link-box">
+						<table cellpadding="0" cellspacing="0" border="0">
+							<tr>
+								<td><label
+										for="rp4wp_related_posts_amount"><?php _e( 'Amount of related posts:', 'related-posts-for-wp' ); ?></label>
+								</td>
+								<td><input class="form-input-tip" type="text" id="rp4wp_related_posts_amount"
+								           value="<?php echo $alpa; ?>"/></td>
+								<td class="rp4pw-install-step3-table-desc"><?php printf( __( 'The amount of related items per %s', 'related-posts-for-wp' ), $post_type ); ?></td>
+							</tr>
+
+
+							<tr>
+								<td><label
+										for="rp4wp_related_posts_age"><?php _e( 'Maximum Post Age:', 'related-posts-for-wp' ); ?></label>
+								</td>
+								<td><input class="form-input-tip" type="text" id="rp4wp_related_posts_age"
+								           value="<?php echo $max_post_age; ?>"/></td>
+								<td class="rp4pw-install-step3-table-desc"><?php printf( __( 'The maximum age in days of %s that will be linked. (0 = unlimited)', 'related-posts-for-wp' ), $post_type ); ?></td>
+							</tr>
+
+							<tr>
+								<td>&nbsp;</td>
+								<td colspan="2" class="rp4pw-install-step3-table-buttons">
+									<a href="javascript:;" class="button button-primary button-large rp4wp-link-now-btn"
+									   id="rp4wp-link-now"><?php _e( 'Link now', 'related-posts-for-wp' ); ?></a>
+									<a href="<?php echo admin_url( sprintf( '?page=rp4wp_install&step=4&pt=%s&&rp4wp_nonce=%s', $post_type, wp_create_nonce( RP4WP_Constants::NONCE_INSTALL ) ) ); ?>"
+									   class="button"><?php _e( 'Skip linking', 'related-posts-for-wp' ); ?></a>
+								</td>
+							</tr>
+
+						</table>
+					</div>
+
+					<br class="clear"/>
+
+					<div id="progress-container">
+						<div id="progressbar"></div>
+						<p>Todo: <span id="progress-todo"><?php echo $total_post_count; ?></span></p>
+						<p>Done: <span id="progress-done">0</span></p>
+					</div>
+					<?php
+					break;
+				case 4:
+					?>
+					<p><?php _e( "That's it, you're good to go!", 'related-posts-for-wp' ); ?></p>
+					<p><?php printf( __( 'Thanks again for using Related Posts for WordPress and if you have any questions be sure to ask them at the %sWordPress.org forums.%s', 'related-posts-for-wp' ), '<a href="http://wordpress.org/support/plugin/related-posts-for-wp" target="_blank">', '</a>' ); ?></p>
+					<p>
+						<a href="<?php echo admin_url( sprintf( '?page=rp4wp_install&rp4wp_nonce=%s', wp_create_nonce( RP4WP_Constants::NONCE_INSTALL ) ) ); ?>"
+						   class="button button-primary"><?php _e( 'Click here to return to step 1', 'related-posts-for-wp' ); ?></a>
+					</p>
+					<p>
+						<?php
+						$local_settings = (array) RP4WP()->settings;
+						$first_setting  = array_shift( $local_settings );
+						echo '<a href="' . admin_url( 'options-general.php?page=' . $first_setting->get_page() ) . '" class="button button-primary">' . __( 'Click here to go to the settings page', 'related-posts-for-wp' ) . '</a>';
+						?>
+					</p>
+					<?php
+			}
+			?>
 		</div>
 
 		</div>
 
-	<?php
+		<?php
 	}
 
 }

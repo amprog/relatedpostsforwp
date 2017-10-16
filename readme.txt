@@ -3,8 +3,8 @@ Contributors: never5, barrykooij
 Donate link: http://www.relatedpostsforwp.com/
 Tags: related posts for wordpress, related posts for wp, simple related posts, easy related posts, related posts, related, relations, internal links, seo, bounce rate
 Requires at least: 3.8
-Tested up to: 4.4.1
-Stable tag: 1.5.6
+Tested up to: 4.9
+Stable tag: 1.7.3
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 

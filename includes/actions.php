@@ -18,6 +18,7 @@ return array(
 	'page_install',
 	'post_type',
 	'related_auto_link',
+	'related_update_link',
 	'related_save_words',
 	'save_meta_box_options',
 	'settings_page',

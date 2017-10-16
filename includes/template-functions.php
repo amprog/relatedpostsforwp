@@ -43,12 +43,13 @@ if ( ! function_exists( 'rp4wp_children' ) ) {
 			}
 		}
 
+		return '';
 	}
 
 }
 
 
-if ( ! function_exists( 'rp4wp_children' ) ) {
+if ( ! function_exists( 'rp4wp_get_template' ) ) {
 	/**
 	 * Get other templates (e.g. product attributes) passing attributes and including the file.
 	 *

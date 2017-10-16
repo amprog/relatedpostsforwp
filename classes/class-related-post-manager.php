@@ -21,6 +21,9 @@ class RP4WP_Related_Post_Manager {
 		// Post Type Manager
 		$ptm = new RP4WP_Post_Type_Manager();
 
+		// Post Link Manager
+		$plm = new RP4WP_Post_Link_Manager();
+
 		// Int y'all
 		$post_id = intval( $post_id );
 
@@ -42,15 +45,27 @@ class RP4WP_Related_Post_Manager {
 			$max_post_age = intval( RP4WP::get()->settings[ 'general_' . $post_type ]->get_option( 'max_post_age' ) );
 		}
 
+		// make $max_post_age filterable
+		$max_post_age = apply_filters( 'rp4wp_max_post_age', $max_post_age, $post_id, $post_type );
+
+		// get limit cat options
+		$limit_cats = 0;
+		if ( 'post' == $post_type ) {
+			$limit_cats = absint( RP4WP()->settings['categories']->get_option( 'limit_related_categories' ) );
+		}
+
 		// Build SQl
 		$sql = "
-		SELECT R.`post_id` AS `ID`
+		SELECT R.`post_id` AS `ID`, ( SUM( O.`weight` ) *  SUM( R.`weight` ) ) AS `CMS`
 		FROM `" . RP4WP_Related_Word_Manager::get_database_table() . "` O
-		INNER JOIN `" . RP4WP_Related_Word_Manager::get_database_table() . "` R ON R.`word` = O.`word` ";
+		INNER JOIN `" . RP4WP_Related_Word_Manager::get_database_table() . "` R ON R.`word` = O.`word` 
+		INNER JOIN `" . $wpdb->posts . "` P ON P.`ID` = R.`post_id` 
+		";
 
-		// only join post table when max post age is set
-		if ( $max_post_age > 0 ) {
-			$sql .= "INNER JOIN `" . $wpdb->posts . "` P ON P.`ID` = R.`post_id`";
+		// join term_relationships table if we're limiting categories
+		if ( 1 === $limit_cats ) {
+			$sql .= "INNER JOIN `".$wpdb->term_relationships."` TR on TR.`object_id` = R.`post_id` 
+			";
 		}
 
 		// add WHERE statements
@@ -58,11 +73,41 @@ class RP4WP_Related_Post_Manager {
 		WHERE 1=1
 		AND O.`post_id` = %d
 		AND R.`post_type` IN " . $formatted_post_types . "
-		AND R.`post_id` != %d
+		AND R.`post_id` != %d 
+		AND P.`post_status` = 'publish'
 		";
+
+		// add categories we're limiting categories on (if we're limitng)
+		if ( 1 === $limit_cats ) {
+
+			// get categories we're limited to
+			$cats = RP4WP()->settings['categories']->get_option( 'related_categories' );
+			if ( is_array( $cats ) ) {
+				$cats_str = "";
+				foreach ( $cats as $cat ) {
+					$cats_str .= "," . absint( $cat );
+				}
+				$cats_str = substr( $cats_str, 1 );
+				$sql      .= "AND TR.term_taxonomy_id IN ( " . $cats_str . " )
+				";
+			}
+
+		}
+
+		// get current related posts
+		$cur_related_posts = $plm->get_child_ids( $post_id );
+		foreach( $cur_related_posts as $crp_k => $crp_v ) { $cur_related_posts[$crp_k] = absint($crp_v); }
+		$formatted_current_rel_posts = implode( ",", $cur_related_posts );
+		if ( ! empty( $formatted_current_rel_posts ) ) {
+			$sql .= "AND R.`post_id` NOT IN (" . $formatted_current_rel_posts . ")
+			";
+		}
 
 		// get excluded ids
 		$excluded_ids = get_option( RP4WP_Constants::OPTION_EXCLUDED, '' );
+
+		// make $excluded_ids filterable
+		$excluded_ids = apply_filters( 'rp4wp_excluded_ids', $excluded_ids, $post_id, $post_type );
 
 		// check if there are excluded ids
 		if ( false !== $excluded_ids && ! empty( $excluded_ids ) ) {
@@ -77,7 +122,7 @@ class RP4WP_Related_Post_Manager {
 
 			// calculate date in past
 			$date_time_oldest = new DateTime();
-			$date_time_oldest = $date_time_oldest->modify( '-' . $max_post_age . 'days' );
+			$date_time_oldest->modify( '-' . $max_post_age . ' days' );
 
 			// make the post age key filterable
 			$post_age_column = apply_filters( 'rp4wp_post_age_column', 'post_date' );
@@ -90,7 +135,7 @@ class RP4WP_Related_Post_Manager {
 
 		// add group by and order by to SQL
 		$sql .= "GROUP BY R.`post_id`
-		ORDER BY SUM( R.`weight` ) DESC
+		ORDER BY `CMS` DESC
 		";
 
 		// Check & Add Limit
@@ -420,7 +465,7 @@ class RP4WP_Related_Post_Manager {
 		$pl_manager = new RP4WP_Post_Link_Manager();
 
 		// Get the children
-		$related_posts = $pl_manager->get_children( $post_id, array( 'posts_per_page' => $limit ) );
+		$related_posts = apply_filters( 'rp4wp_related_posts_list', $pl_manager->get_children( $post_id, array( 'posts_per_page' => $limit ) ), $post_id );
 
 		// Count
 		if ( count( $related_posts ) > 0 ) {

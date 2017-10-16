@@ -36,7 +36,7 @@ var RP4WP_Configurator = function ( tgt ) {
                     // add to grid
                     instance.grid.add_widget( new_component.getEl(), new_component.getX(), new_component.getY(), new_component.getW(), new_component.getH(), true );
                 } else {
-                    swal( "Out Of Space!", "Can't add component because you're out of space! Please remove a component first.", 'error' );
+                    cSwal( "Out Of Space!", "Can't add component because you're out of space! Please remove a component first.", 'error' );
                 }
 
             } );
@@ -104,7 +104,7 @@ var RP4WP_Configurator = function ( tgt ) {
                 }
 
             } catch ( e ) {
-                swal( "Config parse error!", "I'm unable to parse the config JSON string!\nPlease contact support! (Error code: C1)", "error" );
+                cSwal( "Config parse error!", "I'm unable to parse the config JSON string!\nPlease contact support! (Error code: C1)", "error" );
             }
 
 

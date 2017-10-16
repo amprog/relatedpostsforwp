@@ -44,7 +44,7 @@ if ( isset( $options['clean_on_uninstall'] ) && 1 == $options['clean_on_uninstal
 	delete_option( 'rp4wp_words' );
 	delete_option( 'rp4wp_license' );
 	delete_option( 'rp4wp_misc' );
-	delete_option( 'rp4wp_do_install' );
+	delete_option( 'rp4wp_premium_start_install' );
 	delete_option( 'rp4wp_install_date' );
 	delete_option( 'rp4wp_hide_nag' );
 	delete_option( 'rp4wp_installed_post_types' );

@@ -50,7 +50,7 @@ var RP4WP_Component = function ( type, x, y, w, h, custom ) {
             this.w = w;
         }
 
-        if ( undefined != y ) {
+        if ( undefined != h ) {
             this.h = h;
         }
 
@@ -68,6 +68,37 @@ var RP4WP_Component = function ( type, x, y, w, h, custom ) {
             case 'excerpt':
                 this.text = 'Post Excerpt';
                 break;
+            case 'author':
+                this.text = 'Post Author';
+		        break;
+	        case 'date':
+		        this.text = 'Post Date';
+                break;
+            case 'wcprice':
+                this.text = 'WooCommerce Price';
+                break;
+	        case 'taxonomy':
+		        this.text = 'Post Taxonomy';
+		        this.promptObj = {
+			        title: 'What Taxonomy would you like to add?',
+			        text: 'Enter The Taxonomy:',
+			        cb: function ( input_val ) {
+				        instance.text = 'Taxonomy: ' + input_val;
+				        instance.custom = input_val;
+			        }
+		        };
+		        break;
+	        case 'readmore':
+		        this.text = 'Read More Link';
+		        this.promptObj = {
+			        title: 'What text should the link be?',
+			        text: 'Enter The Text:',
+			        cb: function ( input_val ) {
+				        instance.text = 'Read More Link: ' + input_val;
+				        instance.custom = input_val;
+			        }
+		        };
+		        break;
             case 'custom':
                 this.text = 'Custom Text';
 
@@ -75,7 +106,7 @@ var RP4WP_Component = function ( type, x, y, w, h, custom ) {
                     title: 'Enter Custom Text',
                     text: 'Enter The Custom Text:',
                     cb: function ( input_val ) {
-                        instance.text = 'Custom Meta: ' + input_val;
+                        instance.text = 'Custom Text: ' + input_val;
                         instance.custom = input_val;
                     }
                 };
@@ -86,7 +117,7 @@ var RP4WP_Component = function ( type, x, y, w, h, custom ) {
 
                 this.promptObj = {
                     title: 'What Post Meta should be displayed?',
-                    text: 'Enter The Post Met Key:',
+                    text: 'Enter The Post Meta Key:',
                     cb: function ( input_val ) {
                         instance.text = 'Custom Meta: ' + input_val;
                         instance.custom = input_val;
@@ -132,14 +163,15 @@ RP4WP_Component.prototype.promptData = function () {
     }
 
     var instance = this;
-    swal( {
+    cSwal( {
         title: this.promptObj.title,
         text: this.promptObj.text,
-        inputValue: 'tst',
+        inputValue: '',
         type: "input",
         showCancelButton: true,
         closeOnConfirm: false,
-        animation: "slide-from-top"
+        animation: "slide-from-top",
+	    inputPlaceholder : 'test'
     }, function ( input_val ) {
 
         // must be set
@@ -150,7 +182,7 @@ RP4WP_Component.prototype.promptData = function () {
 
         // can't be empty
         if ( '' === input_val ) {
-            swal.showInputError( "This field can't be empty." );
+            cSwal.showInputError( "This field can't be empty." );
             return false
         } else {
             instance.custom = input_val;
@@ -158,7 +190,7 @@ RP4WP_Component.prototype.promptData = function () {
                 instance.promptObj.cb( input_val );
             }
             instance.updateEl();
-            swal( "Perfection!", "Component set!", "success" );
+            cSwal( "Perfection!", "Component set!", "success" );
         }
 
     } );
@@ -206,7 +238,7 @@ RP4WP_Component.prototype.generateEl = function () {
     } );
     content.append( clsbtn );
 
-    if ( 'custom' === this.type || 'meta' === this.type ) {
+    if ( 'custom' === this.type || 'meta' === this.type || 'taxonomy' == this.type || 'readmore' == this.type ) {
         el.dblclick( function () {
             instance.promptData();
         } );

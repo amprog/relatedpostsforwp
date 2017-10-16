@@ -457,7 +457,7 @@ jQuery( document ).ready( function ( $ ) {
             $( '#progressbar' ).find( 'div:first' ).append( this.percentage_object );
 
             // Set the current progress
-            this.do_progressbar( $( '#rp4wp_posts_todo' ).val() );
+            this.do_progressbar( 0 );
 
             // Get the total posts
             this.total_posts = $( '#rp4wp_total_posts' ).val();
